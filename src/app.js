@@ -11,6 +11,8 @@ connectDB();
 
 const app = express();
 
+app.use(express.json({ limit: "50mb" })); // Increase JSON request size
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors());
 app.use(express.json()); // Parse JSON requests
 

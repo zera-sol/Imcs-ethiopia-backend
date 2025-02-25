@@ -13,35 +13,36 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", upload.single("image"), async (req, res) => {
+router.post("/",  async (req, res) => {
+  if (!req.body || !Array.isArray(req.body.graduates) || req.body.graduates.length === 0) {
+      return res.status(400).json({ message: "No valid data received!" });
+  }
 
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "No data received! Make sure you set the correct headers in Postman." });
-    }
-        try {
-          const existingGraduate = await Graduate.findOne({ phone: req.body.phone });
-              if (existingGraduate) {
-                  return res.status(400).json({ message: "This phone number is already registered!" });
-              }
-          const { name, university, department, year, phone, lastword } = req.body;
-          const imageUrl = req.file.path; // Get Cloudinary image URL
+  try {
+      const graduates = req.body.graduates; // Array of graduates from frontend
+      const phoneNumbers = graduates.map(g => g.phone);
       
-          const newGraduate = new Graduate({
-            name,
-            university,
-            department,
-            year,
-            phone,
-            lastword,
-            image: imageUrl,
-          });
+      // Find existing graduates with the same phone numbers
+      const existingGraduates = await Graduate.find({ phone: { $in: phoneNumbers } });
+
+      if (existingGraduates.length > 0) {
+          const registeredNames = existingGraduates.map(g => g.name);
+          return res.status(400).json({ message: `These users are already registered: ${registeredNames.join(", ")}` });
+      }
       
-          await newGraduate.save();
-          res.status(201).json({ message: "Graduate added successfully!", graduate: newGraduate });
-        } catch (error) {
-          res.status(500).json({ message: error.message });
-        }
+      // Add images to each graduate
+      const newGraduates = graduates.map((graduate, index) => ({
+          ...graduate
+      }));
+
+      // Save new graduates in bulk
+      const savedGraduates = await Graduate.insertMany(newGraduates);
+      res.status(201).json({ message: "Graduates added successfully!", graduates: savedGraduates });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
 });
+
 
 router.put("/:id", upload.single("image"), async (req, res) => {
   try {
