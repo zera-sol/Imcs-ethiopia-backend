@@ -12,7 +12,19 @@ router.get("/", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
-
+//Get single news
+router.get("/:id", async (req, res) => {
+    try {
+      const news = await News.findById(req.params.id);
+      if (!news) {
+        return res.status(404).json({ message: "News not found" });
+      }
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
 // POST (Create) a news article
 router.post("/", upload.single("image"), async (req, res) => {
     try {
