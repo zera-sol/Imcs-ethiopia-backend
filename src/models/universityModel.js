@@ -9,9 +9,14 @@ const getUniversityData = async (university) => {
     const response = await axios.get(SHEET_BEST_URL);
     const rows = response.data || [];
 
-    // Filter rows by university name
-    const filteredRows = rows.filter(row => 
-      row.university&& row.university.toLowerCase() === university.toLowerCase()
+    // If no university is provided → return all rows
+    if (!university) {
+      return rows;
+    }
+
+    // If university is provided → filter rows by university name
+    const filteredRows = rows.filter(
+      row => row.university && row.university.toLowerCase() === university.toLowerCase()
     );
 
     return filteredRows;
@@ -20,6 +25,7 @@ const getUniversityData = async (university) => {
     throw new Error("Failed to fetch university data.");
   }
 };
+
 
 const saveToSheet = async (data) => {
   try {

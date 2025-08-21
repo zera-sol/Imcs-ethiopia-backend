@@ -12,7 +12,28 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+//Get graduates of a given university
+// Get graduates by university (param)
+router.get("/:university", async (req, res) => {
+  try {
+    const { university } = req.params;
 
+    // Find graduates whose university matches (case-insensitive)
+    const graduates = await Graduate.find({
+      university: { $regex: new RegExp(university, "i") }
+    });
+
+    if (graduates.length === 0) {
+      return res.status(404).json({ message: "No graduates found for this university." });
+    }
+
+    res.json(graduates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Add new graduates to a database
 router.post("/",  async (req, res) => {
   if (!req.body || !Array.isArray(req.body.graduates) || req.body.graduates.length === 0) {
       return res.status(400).json({ message: "No valid data received!" });
